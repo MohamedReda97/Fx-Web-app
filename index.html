@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>EA Tester Report Analyzer</title>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+	<body>
+		<div class="container">
+			<h1>EA Tester Report Analyzer</h1>
+
+			<div class="panel upload-section">
+				<h2>Upload Report</h2>
+				<input type="file" id="reportFile" accept=".html,.txt" required />
+				<br />
+				<button onclick="analyzeReport()">Analyze</button>
+			</div>
+
+			<div id="results" style="display: none">
+				<div class="panel">
+					<h2>Summary Chart</h2>
+					<canvas id="netProfitChart"></canvas>
+				</div>
+
+				<div class="panel">
+					<h2>Risk Indicator</h2>
+					<div class="chart-container">
+						<canvas id="riskIndicator"></canvas>
+						<p class="chart-description" id="risk-insights"></p>
+					</div>
+				</div>
+
+				<div class="panel">
+					<h2>Burn Probability Indicator</h2>
+					<div class="chart-container">
+						<canvas id="burnProbabilityIndicator"></canvas>
+						<p class="chart-description" id="burn-insights"></p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="script.js"></script>
+	</body>
+</html>
