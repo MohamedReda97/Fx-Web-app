@@ -87,8 +87,8 @@ function analyzeReport() {
         });
 
         // Set the height of the indicator charts explicitly
-        document.getElementById('riskIndicator').height = 150;
-        document.getElementById('burnProbabilityIndicator').height = 150;
+        document.getElementById('riskIndicator').height = 30;
+        document.getElementById('burnProbabilityIndicator').height = 30;
 
         // Calculate the Risk Indicator
         const riskScore = (maxDrawdownPercent / 100) * 0.5 + (1 / profitFactor) * 0.3 + (1 - sharpeRatio) * 0.2;
