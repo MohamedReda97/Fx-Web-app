@@ -59,7 +59,7 @@ canvas {
 /* Specific height for the indicator charts */
 #riskIndicator,
 #burnProbabilityIndicator {
-	height: 20px; /* Reduced height */
+	max-hight: 30px; /* Reduced height */
 }
 
 /* Dark Mode for Inputs */
