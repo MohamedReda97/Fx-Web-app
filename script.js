@@ -1,268 +1,285 @@
 function analyzeReport() {
-	const fileInput = document.getElementById("reportFile");
-	const file = fileInput.files[0];
-	if (!file) {
-		alert("Please upload a file.");
-		return;
-	}
+    const fileInput = document.getElementById('reportFile');
+    const file = fileInput.files[0];
+    if (!file) {
+        alert('Please upload a file.');
+        return;
+    }
 
-	const reader = new FileReader();
-	reader.onload = function (event) {
-		const content = event.target.result;
+    // Reset the previous charts and data
+    resetCharts();
 
-		// Parse the HTML content
-		const parser = new DOMParser();
-		const doc = parser.parseFromString(content, "text/html");
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const content = event.target.result;
 
-		// Initialize variables to store the values
-		let totalNetProfit = null;
-		let grossProfit = null;
-		let grossLoss = null;
+        // Parse the HTML content
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content, "text/html");
 
-		// Example extracted values from the report (to be adjusted based on actual report content)
-		const maxDrawdownPercent = 26.44; // Max Drawdown (%)
-		const profitFactor = 1.34; // Profit Factor
-		const sharpeRatio = 0.56; // Sharpe Ratio
-		const recoveryFactor = 0.52; // Recovery Factor
-		const lossTradesPercent = 30.61; // Loss Trades (%)
+        // Initialize variables to store the values
+        let totalNetProfit = null;
+        let grossProfit = null;
+        let grossLoss = null;
 
-		// Extract Total Net Profit, Gross Profit, and Gross Loss
-		const rows = doc.querySelectorAll("tr");
-		rows.forEach((row) => {
-			const cells = row.querySelectorAll("td");
-			cells.forEach((cell, index) => {
-				if (cell.textContent.includes("Total Net Profit:")) {
-					totalNetProfit = parseFloat(cells[index + 1].querySelector("b").textContent.replace(/[^0-9.-]+/g, ""));
-				} else if (cell.textContent.includes("Gross Profit:")) {
-					grossProfit = parseFloat(cells[index + 1].querySelector("b").textContent.replace(/[^0-9.-]+/g, ""));
-				} else if (cell.textContent.includes("Gross Loss:")) {
-					grossLoss = parseFloat(cells[index + 1].querySelector("b").textContent.replace(/[^0-9.-]+/g, ""));
-				}
-			});
-		});
+        // Example extracted values from the report (to be adjusted based on actual report content)
+        const maxDrawdownPercent = 26.44;  // Max Drawdown (%)
+        const profitFactor = 1.34;         // Profit Factor
+        const sharpeRatio = 0.56;          // Sharpe Ratio
+        const recoveryFactor = 0.52;       // Recovery Factor
+        const lossTradesPercent = 30.61;   // Loss Trades (%)
 
-		// Log the extracted data for debugging
-		console.log("Total Net Profit:", totalNetProfit);
-		console.log("Gross Profit:", grossProfit);
-		console.log("Gross Loss:", grossLoss);
+        // Extract Total Net Profit, Gross Profit, and Gross Loss
+        const rows = doc.querySelectorAll('tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+                if (cell.textContent.includes("Total Net Profit:")) {
+                    totalNetProfit = parseFloat(cells[index + 1].querySelector('b').textContent.replace(/[^0-9.-]+/g, ''));
+                } else if (cell.textContent.includes("Gross Profit:")) {
+                    grossProfit = parseFloat(cells[index + 1].querySelector('b').textContent.replace(/[^0-9.-]+/g, ''));
+                } else if (cell.textContent.includes("Gross Loss:")) {
+                    grossLoss = parseFloat(cells[index + 1].querySelector('b').textContent.replace(/[^0-9.-]+/g, ''));
+                }
+            });
+        });
 
-		// Create the summary chart
-		const summaryCtx = document.getElementById("netProfitChart").getContext("2d");
-		const summaryChart = new Chart(summaryCtx, {
-			type: "bar",
-			data: {
-				labels: ["Total Net Profit", "Gross Profit", "Gross Loss"],
-				datasets: [
-					{
-						label: "Amount",
-						data: [totalNetProfit, grossProfit, grossLoss],
-						backgroundColor: ["rgba(75, 192, 192, 0.2)", "rgba(54, 162, 235, 0.2)", "rgba(255, 99, 132, 0.2)"],
-						borderColor: ["rgba(75, 192, 192, 1)", "rgba(54, 162, 235, 1)", "rgba(255, 99, 132, 1)"],
-						borderWidth: 1,
-					},
-				],
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-					},
-				},
-			},
-		});
+        // Check if the data was found, otherwise alert the user and stop further processing
+        if (totalNetProfit === null || grossProfit === null || grossLoss === null) {
+            alert('The uploaded file does not contain the required data.');
+            return;
+        }
 
-		// Set the height of the indicator charts explicitly
-		document.getElementById("riskIndicator").height = 30;
-		document.getElementById("burnProbabilityIndicator").height = 30;
+        // Log the extracted data for debugging
+        console.log("Total Net Profit:", totalNetProfit);
+        console.log("Gross Profit:", grossProfit);
+        console.log("Gross Loss:", grossLoss);
 
-		// Calculate the Risk Indicator
-		const riskScore = (maxDrawdownPercent / 100) * 0.5 + (1 / profitFactor) * 0.3 + (1 - sharpeRatio) * 0.2;
+        // Create the summary chart
+        const summaryCtx = document.getElementById('netProfitChart').getContext('2d');
+        const summaryChart = new Chart(summaryCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Total Net Profit', 'Gross Profit', 'Gross Loss'],
+                datasets: [{
+                    label: 'Amount',
+                    data: [totalNetProfit, grossProfit, grossLoss],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 99, 132, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
 
-		// Calculate the Burn Probability Indicator
-		const burnProbability = (maxDrawdownPercent / 100) * 0.6 + (1 / recoveryFactor) * 0.3 + (lossTradesPercent / 100) * 0.1;
+        // Set the height of the indicator charts explicitly
+        document.getElementById('riskIndicator').height = 150;
+        document.getElementById('burnProbabilityIndicator').height = 150;
 
-		// Dynamic Insights
-		const riskInsights = generateRiskInsights(riskScore, maxDrawdownPercent, profitFactor, sharpeRatio);
-		const burnInsights = generateBurnInsights(burnProbability, maxDrawdownPercent, recoveryFactor, lossTradesPercent);
+        // Calculate the Risk Indicator
+        const riskScore = (maxDrawdownPercent / 100) * 0.5 + (1 / profitFactor) * 0.3 + (1 - sharpeRatio) * 0.2;
 
-		document.getElementById("risk-insights").innerHTML = riskInsights;
-		document.getElementById("burn-insights").innerHTML = burnInsights;
+        // Calculate the Burn Probability Indicator
+        const burnProbability = (maxDrawdownPercent / 100) * 0.6 + (1 / recoveryFactor) * 0.3 + (lossTradesPercent / 100) * 0.1;
 
-		// Create the Risk Indicator visualization
-		const ctxRisk = document.getElementById("riskIndicator").getContext("2d");
-		const riskChart = new Chart(ctxRisk, {
-			type: "bar",
-			data: {
-				labels: ["Risk Score"],
-				datasets: [
-					{
-						label: "Risk Level",
-						data: [riskScore],
-						backgroundColor: ["rgba(255, 99, 132, 0.6)"],
-						borderColor: ["rgba(255, 99, 132, 1)"],
-						borderWidth: 1,
-					},
-				],
-			},
-			options: {
-				indexAxis: "y",
-				scales: {
-					x: {
-						beginAtZero: true,
-						max: 1,
-					},
-				},
-				plugins: {
-					tooltip: { enabled: true },
-					legend: { display: false },
-					annotation: {
-						annotations: [
-							{
-								type: "box",
-								xMin: 0,
-								xMax: 0.3,
-								backgroundColor: "rgba(75, 192, 192, 0.2)",
-								borderColor: "rgba(75, 192, 192, 1)",
-								label: {
-									content: "Low Risk",
-									enabled: true,
-									position: "top",
-								},
-							},
-							{
-								type: "box",
-								xMin: 0.3,
-								xMax: 0.7,
-								backgroundColor: "rgba(255, 205, 86, 0.2)",
-								borderColor: "rgba(255, 205, 86, 1)",
-								label: {
-									content: "Moderate Risk",
-									enabled: true,
-									position: "top",
-								},
-							},
-							{
-								type: "box",
-								xMin: 0.7,
-								xMax: 1,
-								backgroundColor: "rgba(255, 99, 132, 0.2)",
-								borderColor: "rgba(255, 99, 132, 1)",
-								label: {
-									content: "High Risk",
-									enabled: true,
-									position: "top",
-								},
-							},
-						],
-					},
-				},
-			},
-		});
+        // Dynamic Insights
+        const riskInsights = generateRiskInsights(riskScore, maxDrawdownPercent, profitFactor, sharpeRatio);
+        const burnInsights = generateBurnInsights(burnProbability, maxDrawdownPercent, recoveryFactor, lossTradesPercent);
 
-		// Create the Burn Probability Indicator visualization
-		const ctxBurn = document.getElementById("burnProbabilityIndicator").getContext("2d");
-		const burnChart = new Chart(ctxBurn, {
-			type: "bar",
-			data: {
-				labels: ["Burn Probability"],
-				datasets: [
-					{
-						label: "Probability Level",
-						data: [burnProbability * 100], // Convert to percentage
-						backgroundColor: ["rgba(255, 159, 64, 0.6)"],
-						borderColor: ["rgba(255, 159, 64, 1)"],
-						borderWidth: 1,
-					},
-				],
-			},
-			options: {
-				indexAxis: "y",
-				scales: {
-					x: {
-						beginAtZero: true,
-						max: 100, // Adjusted for percentage
-					},
-				},
-				plugins: {
-					tooltip: { enabled: true },
-					legend: { display: false },
-					annotation: {
-						annotations: [
-							{
-								type: "box",
-								xMin: 0,
-								xMax: 20,
-								backgroundColor: "rgba(75, 192, 192, 0.2)",
-								borderColor: "rgba(75, 192, 192, 1)",
-								label: {
-									content: "Low Probability",
-									enabled: true,
-									position: "top",
-								},
-							},
-							{
-								type: "box",
-								xMin: 20,
-								xMax: 50,
-								backgroundColor: "rgba(255, 205, 86, 0.2)",
-								borderColor: "rgba(255, 205, 86, 1)",
-								label: {
-									content: "Moderate Probability",
-									enabled: true,
-									position: "top",
-								},
-							},
-							{
-								type: "box",
-								xMin: 50,
-								xMax: 100,
-								backgroundColor: "rgba(255, 99, 132, 0.2)",
-								borderColor: "rgba(255, 99, 132, 1)",
-								label: {
-									content: "High Probability",
-									enabled: true,
-									position: "top",
-								},
-							},
-						],
-					},
-				},
-			},
-		});
+        document.getElementById('risk-insights').innerHTML = riskInsights;
+        document.getElementById('burn-insights').innerHTML = burnInsights;
 
-		// Show the results section
-		document.getElementById("results").style.display = "block";
-	};
+        // Create the Risk Indicator visualization
+        const ctxRisk = document.getElementById('riskIndicator').getContext('2d');
+        const riskChart = new Chart(ctxRisk, {
+            type: 'bar',
+            data: {
+                labels: ['Risk Score'],
+                datasets: [{
+                    label: 'Risk Level',
+                    data: [riskScore],
+                    backgroundColor: ['rgba(255, 99, 132, 0.6)'],
+                    borderColor: ['rgba(255, 99, 132, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 1
+                    }
+                },
+                plugins: {
+                    tooltip: { enabled: true },
+                    legend: { display: false },
+                    annotation: {
+                        annotations: [{
+                            type: 'box',
+                            xMin: 0,
+                            xMax: 0.3,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            label: {
+                                content: 'Low Risk',
+                                enabled: true,
+                                position: 'top'
+                            }
+                        }, {
+                            type: 'box',
+                            xMin: 0.3,
+                            xMax: 0.7,
+                            backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                            borderColor: 'rgba(255, 205, 86, 1)',
+                            label: {
+                                content: 'Moderate Risk',
+                                enabled: true,
+                                position: 'top'
+                            }
+                        }, {
+                            type: 'box',
+                            xMin: 0.7,
+                            xMax: 1,
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            label: {
+                                content: 'High Risk',
+                                enabled: true,
+                                position: 'top'
+                            }
+                        }]
+                    }
+                }
+            }
+        });
 
-	reader.readAsText(file);
+        // Create the Burn Probability Indicator visualization
+        const ctxBurn = document.getElementById('burnProbabilityIndicator').getContext('2d');
+        const burnChart = new Chart(ctxBurn, {
+            type: 'bar',
+            data: {
+                labels: ['Burn Probability'],
+                datasets: [{
+                    label: 'Probability Level',
+                    data: [burnProbability * 100], // Convert to percentage
+                    backgroundColor: ['rgba(255, 159, 64, 0.6)'],
+                    borderColor: ['rgba(255, 159, 64, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100 // Adjusted for percentage
+                    }
+                },
+                plugins: {
+                    tooltip: { enabled: true },
+                    legend: { display: false },
+                    annotation: {
+                        annotations: [{
+                            type: 'box',
+                            xMin: 0,
+                            xMax: 20,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            label: {
+                                content: 'Low Probability',
+                                enabled: true,
+                                position: 'top'
+                            }
+                        }, {
+                            type: 'box',
+                            xMin: 20,
+                            xMax: 50,
+                            backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                            borderColor: 'rgba(255, 205, 86, 1)',
+                            label: {
+                                content: 'Moderate Probability',
+                                enabled: true,
+                                position: 'top'
+                            }
+                        }, {
+                            type: 'box',
+                            xMin: 50,
+                            xMax: 100,
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            label: {
+                                content: 'High Probability',
+                                enabled: true,
+                                position: 'top'
+                            }
+                        }]
+                    }
+                }
+            }
+        });
+
+        // Show the results section
+        document.getElementById('results').style.display = 'block';
+    };
+
+    reader.readAsText(file);
+}
+
+function resetCharts() {
+    // Clear the canvas elements
+    const charts = ['netProfitChart', 'riskIndicator', 'burnProbabilityIndicator'];
+    charts.forEach(id => {
+        const canvas = document.getElementById(id);
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // Clear the insights
+    document.getElementById('risk-insights').innerHTML = '';
+    document.getElementById('burn-insights').innerHTML = '';
 }
 
 // Generate dynamic insights for risk
 function generateRiskInsights(riskScore, maxDrawdownPercent, profitFactor, sharpeRatio) {
-	let insights = `Risk Score: ${(riskScore * 100).toFixed(2)}%. `;
+    let insights = `Risk Score: ${(riskScore * 100).toFixed(2)}%. `;
 
-	if (riskScore < 0.3) {
-		insights += `The EA is considered low risk. With a Max Drawdown of ${maxDrawdownPercent}%, a Profit Factor of ${profitFactor}, and a Sharpe Ratio of ${sharpeRatio}, the EA seems to have a balanced approach with less volatility.`;
-	} else if (riskScore < 0.7) {
-		insights += `The EA is at a moderate risk level. The Max Drawdown of ${maxDrawdownPercent}% is noticeable, and with a Profit Factor of ${profitFactor}, the returns are justifying the risks, but the Sharpe Ratio of ${sharpeRatio} suggests that the returns might not be consistent.`;
-	} else {
-		insights += `The EA is considered high risk. With a Max Drawdown of ${maxDrawdownPercent}%, the EA exposes the account to significant potential losses. The Profit Factor of ${profitFactor} and a Sharpe Ratio of ${sharpeRatio} indicate a volatile strategy with inconsistent returns.`;
-	}
+    if (riskScore < 0.3) {
+        insights += `The EA is considered low risk. With a Max Drawdown of ${maxDrawdownPercent}%, a Profit Factor of ${profitFactor}, and a Sharpe Ratio of ${sharpeRatio}, the EA seems to have a balanced approach with less volatility.`;
+    } else if (riskScore < 0.7) {
+        insights += `The EA is at a moderate risk level. The Max Drawdown of ${maxDrawdownPercent}% is noticeable, and with a Profit Factor of ${profitFactor}, the returns are justifying the risks, but the Sharpe Ratio of ${sharpeRatio} suggests that the returns might not be consistent.`;
+    } else {
+        insights += `The EA is considered high risk. With a Max Drawdown of ${maxDrawdownPercent}%, the EA exposes the account to significant potential losses. The Profit Factor of ${profitFactor} and a Sharpe Ratio of ${sharpeRatio} indicate a volatile strategy with inconsistent returns.`;
+    }
 
-	return insights;
+    return insights;
 }
 
 // Generate dynamic insights for burn probability
 function generateBurnInsights(burnProbability, maxDrawdownPercent, recoveryFactor, lossTradesPercent) {
-	let insights = `Burn Probability: ${(burnProbability * 100).toFixed(2)}%. `;
+    let insights = `Burn Probability: ${(burnProbability * 100).toFixed(2)}%. `;
 
-	if (burnProbability < 0.2) {
-		insights += `The probability of burning the account is low. The Max Drawdown of ${maxDrawdownPercent}% combined with a Recovery Factor of ${recoveryFactor} indicates that the EA is likely to recover from losses. The Loss Trades percentage of ${lossTradesPercent}% shows a healthy balance between winning and losing trades.`;
-	} else if (burnProbability < 0.5) {
-		insights += `The probability of burning the account is moderate. The Max Drawdown of ${maxDrawdownPercent}% is significant, and a Recovery Factor of ${recoveryFactor} indicates challenges in recovering losses. The Loss Trades percentage of ${lossTradesPercent}% suggests a strategy that may be prone to larger losing streaks.`;
-	} else {
-		insights += `The probability of burning the account is high. A Max Drawdown of ${maxDrawdownPercent}% combined with a low Recovery Factor of ${recoveryFactor} shows that the EA struggles to recover from losses. With a Loss Trades percentage of ${lossTradesPercent}%, the EA has a high risk of depleting the account balance.`;
-	}
+    if (burnProbability < 0.2) {
+        insights += `The probability of burning the account is low. The Max Drawdown of ${maxDrawdownPercent}% combined with a Recovery Factor of ${recoveryFactor} indicates that the EA is likely to recover from losses. The Loss Trades percentage of ${lossTradesPercent}% shows a healthy balance between winning and losing trades.`;
+    } else if (burnProbability < 0.5) {
+        insights += `The probability of burning the account is moderate. The Max Drawdown of ${maxDrawdownPercent}% is significant, and a Recovery Factor of ${recoveryFactor} indicates challenges in recovering losses. The Loss Trades percentage of ${lossTradesPercent}% suggests a strategy that may be prone to larger losing streaks.`;
+    } else {
+        insights += `The probability of burning the account is high. A Max Drawdown of ${maxDrawdownPercent}% combined with a low Recovery Factor of ${recoveryFactor} shows that the EA struggles to recover from losses. With a Loss Trades percentage of ${lossTradesPercent}%, the EA has a high risk of depleting the account balance.`;
+    }
 
-	return insights;
+    return insights;
 }
